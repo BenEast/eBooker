@@ -21,9 +21,9 @@ else:
 __version__ = "1.1.0"
 __help_string__ = "eBooker v" + __version__ + " Help\n==============" + \
     ("=" * len(__version__)) + "\nhelp - show this help\nexit - quit the session\nabout - read about this tool\nedit - edit/create a file\nclear -\
-      clear the screen\ndebug - give you a list of commonly occurring issues\nserve - open your book in a web browser for reviewing"
+      clear the screen\ndebug - give you a list of commonly occurring issues\nserve - open your book in a web browser for reviewing\n"
 __about_string__ = "eBooker is a command-line tool which lets you create ebooks and other text files from command line with ease. \
-You don't have to be a programming expert or a nerd to use this. Anyone with a basic knowledge in computers can use this tool very easily."
+You don't have to be a programming expert or a nerd to use this. Anyone with a basic knowledge in computers can use this tool very easily.\n"
 ##########################################################################
 
 
@@ -33,6 +33,7 @@ def install_markdown():
         os.system("pip3 install markdown")
     else:
         os.system("easy_install --home pip; pip install markdown")
+
 
 is_unix = os.name == "posix"
 
@@ -117,31 +118,44 @@ print(
     "   ___| |_) | ___   ___ | | _____ _ __\n"
     "  / _ \  _ < / _ \ / _ \| |/ / _ \  __|\n"
     " |  __/ |_) | (_) | (_) |   <  __/ |\n"
-    "  \___|____/ \___/ \___/|_|\_\___|_| v" + __version__ +
-    "                       Running on Python " +
+    "  \___|____/ \___/ \___/|_|\_\___|_| v" + __version__ + 
+    "                       Running on Python " + 
     str(sys.version_info[0]) + "!\n"
     "\n"
-    "Type in \"help\" at the prompt for, of course, help."
+    'Type in "help" at the prompt for, of course, help.'
 )
 
 ##########################################################################
 
+# Commands are mapped to this dict by decorators
+_commands = dict()
 
+# Define command decorator
+def command(name):
+    def call_command(func):
+        _commands[name] = func  # Map name to func in _commands
+        return func
+    return call_command
+
+
+@command("debug")
 def cmd_debug():
     print("Debugging help for MacOS/*is_unix __version__:")
     print(
         "Email me at archmaster@yahoo.com with the error code for the error message you encountered.")
     debug()
+    
 
-
+@command("clear")
 def cmd_clear():
     print("Clearing...")
     clear()
-    print("******************** eBooker v" +
+    print("******************** eBooker v" + 
           __version__ + " ********************")
     print("")
+    
 
-
+@command("serve")
 def cmd_serve():
     print("Serving book...")
     filenameArray = glob.glob(os.path.dirname(
@@ -171,127 +185,115 @@ def cmd_serve():
 
     get_input("")
     os.remove("review-book.html")
+    
 
-
+@command("edit")
 def cmd_edit():
-    editloopBool = True
+    editLoopBool = True
 
-    while editloopBool:
-        editBool = get_input(
-            "Would you like to create a new chapter? (y/n) "
-        )
+    while editLoopBool:
+        editBool = get_input("Would you like to create a new chapter? (y/n) ").lower()
 
         if editBool == "y":
-            editloopBool = False
+            editLoopBool = False
             print("You want to create a new chapter.")
 
             while True:
-                newfileString = get_input(
-                    "What would you like the chapter number to be? ")
-                if (newfileString == "") or (newfileString is None) or (newfileString == " "):
-                    print("You must enter a chapter number.")
-                else:
-                    try:
-                        newfileString = int(newfileString)
-                        break
-                    except ValueError:
-                        print("You must enter a number.")
+                newChapterNumber = get_input("What would you like the chapter number to be? ")
+                try:
+                    newChapterNumber = int(newChapterNumber)
+                    break
+                
+                except (TypeError, ValueError):
+                    print("You must enter a number.")
 
             print("Creating file...")
 
-            newfileFile = codecs.open(
-                "chapter-" + str(newfileString) + ".html", "a", "utf-8"
+            newChapterFile = codecs.open(
+                "chapter-" + str(newChapterNumber) + ".html", "a", "utf-8"
             )
-            newfileFile.write(
+            newChapterFile.write(
                 "Press CTRL-O then hit return to save. Press CTRL-X to exit.\n"
             )
-            newfileFile.write(
+            newChapterFile.write(
                 "Don't worry if you can't see part of your lines; they will\n"
             )
 
-            newfileFile.write("be saved anyway.")
-            newfileFile.close()
+            newChapterFile.write("be saved anyway.")
+            newChapterFile.close()
 
             print("Your file is created!")
 
-            open_editor("chapter-" + str(newfileString) + ".html")
+            open_editor("chapter-" + str(newChapterNumber) + ".html")
 
-            print("If you got an error, use the \"debug\" command.")
+            print('If you got an error, use the "debug" command.')
 
         elif editBool == "n":
-            editloopBool = False
+            editLoopBool = False
             print("You want to edit an existing chapter!")
 
             while True:
-                editfileString = get_input(
-                    "Please type in the chapter number. ")
-                if (editfileString == "") or (editfileString is None) or (editfileString == " "):
-                    print("You must enter a chapter number.")
-                else:
-                    try:
-                        editfileString = int(editfileString)
-                        break
-                    except ValueError:
-                        print("You must enter a number.")
+                editChapterNumber = get_input("Please type in the chapter number. ")
+                try:
+                    editChapterNumber = int(editChapterNumber)
+                    break
+                 
+                except (TypeError, ValueError):
+                    print("You must enter a number.")
 
             print("Opening file for editing...")
 
-            open_editor("chapter-" + str(editfileString) + ".html")
+            open_editor("chapter-" + str(editChapterNumber) + ".html")
 
-            print("If you got an error, use the \"debug\" command.")
+            print('If you got an error, use the "debug" command.')
 
         else:
-            print("Please type in \"y\" or  \"n\".")
+            print('Please type in "y" or  "n".')
+            
 
-
+@command("about")
 def cmd_about():
     print(__about_string__)
+    
 
-
+@command("exit")
 def cmd_exit():
-    exitloopBool = True
-    while exitloopBool:
+    exitLoopBool = True
+    while exitLoopBool:
         exitBool = get_input("Would you like to quit? (y/n) ")
-        if exitBool == "y":
-            exitloopBool = False
+        
+        if exitBool.lower() == "y":
             clear()
             sys.exit()
-        elif exitBool == "n":
-            exitloopBool = False
-            print("OK, not exited!")
+            
+        elif exitBool.lower() == "n":
+            exitLoopBool = False
+            print("OK, not exiting!")
+            
         else:
-            print("Please type in \"y\" or  \"n\".")
+            print('Please type in "y" or  "n".')
+            
 
-
+@command("help")
 def cmd_help():
     print(__help_string__)
 
-##########################################################################
 
+# Attempts to execute the specified command.
+# Raises a KeyError if invalid command is given.
+def run_command(name):
+    try:
+        _commands[name.lower()]()
+    except KeyError:
+        print('"' + name + '" is not a valid command. Type "help" for more options.\n')
+    
+##########################################################################
 
 def main():
     while True:
         cmd = get_input("eBooker > ")
-
-        if cmd == "help":
-            cmd_help()
-        elif cmd == "exit":
-            cmd_exit()
-        elif cmd == "about":
-            cmd_about()
-        elif cmd == "edit":
-            cmd_edit()
-        elif cmd == "serve":
-            cmd_serve()
-        elif cmd == "clear":
-            cmd_clear()
-        elif cmd == "debug":
-            cmd_debug()
-        else:
-            print(
-                "\"" + cmd + "\" is not a valid command. Type \"help\" for more options"
-            )
-
+        run_command(cmd)
+        
 try:
     main()
 
